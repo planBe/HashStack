@@ -18,6 +18,7 @@ enum VerifyState {
 }
 
 struct MenuBarContentView: View {
+    @StateObject private var fileHistory = FileHistoryStore()
     @State private var algorithm: HashAlgorithm = .sha256
     @State private var inputMode: InputMode = .text
     @State private var inputText: String = ""
@@ -63,6 +64,11 @@ struct MenuBarContentView: View {
             hashOutputSection
 
             verifySection
+
+            if !fileHistory.paths.isEmpty {
+                Divider()
+                recentFilesSection
+            }
 
             Divider()
 
@@ -226,6 +232,39 @@ struct MenuBarContentView: View {
         }
     }
 
+    // MARK: - Recent files
+
+    private var recentFilesSection: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text("RECENT FILES")
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .tracking(0.6)
+                Spacer()
+                Button("Clear") { fileHistory.clear() }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+            }
+
+            ForEach(fileHistory.paths, id: \.self) { path in
+                Button(action: { adoptFile(URL(fileURLWithPath: path)) }) {
+                    Text((path as NSString).lastPathComponent)
+                        .font(.system(size: 11, design: .monospaced))
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.vertical, 2)
+                        .padding(.horizontal, 4)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .help(path)  // hover tooltip shows full path
+            }
+        }
+    }
+
     // MARK: - State
 
     private var currentHash: String {
@@ -272,8 +311,10 @@ struct MenuBarContentView: View {
         pickedFileURL = url
         inputMode = .file
         if HashGenerator.hashFile(at: url, with: algorithm) == nil {
-            fileHashError = "Couldn't read file."
+            fileHashError = "Couldn't read file (it may have moved or been deleted)."
             pickedFileURL = nil
+        } else {
+            fileHistory.add(url)
         }
     }
 

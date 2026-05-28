@@ -10,12 +10,12 @@ to [clipStack](https://github.com/planBe/ClipStack),
 
 ## Status
 
-**v0.2 — in development.** Working menu bar app with live text + file
+**v0.3 — in development.** Working menu bar app with live text + file
 hashing, drag-and-drop, verify mode (paste expected hash for an auto ✓/✗
-match), and copy-to-clipboard. Recent-files history and configurable global
-hotkey are planned for later versions.
+match), recent-files history, and copy-to-clipboard. Configurable global
+hotkey is planned for a later version.
 
-## Features (v0.2)
+## Features (v0.3)
 
 - Lives in the menu bar; no Dock icon
 - Live hash output as you type
@@ -25,6 +25,9 @@ hotkey are planned for later versions.
 - **Drag-and-drop files** anywhere onto the popover — auto-switches to File
   mode and hashes the dropped file. Or use the standard macOS Open File
   dialog if you prefer
+- **Recent files history** — last 10 hashed files persist across launches;
+  click any entry to re-hash with the current algorithm (handy when
+  iterating on a build output). Hover any entry for the full path
 - File hashing streams in 1 MB chunks — large files don't load fully into
   memory
 - Four algorithms: MD5, SHA-1, SHA-256, SHA-512
@@ -65,7 +68,7 @@ Then ⌘R in Xcode.
 - [x] v0.2 — verify mode (paste expected hash, auto ✓/✗ compare),
   drag-and-drop files onto the popover, NSStatusItem refactor for sticky
   popover behavior
-- [ ] v0.3 — recent-files history (last 10 hashed files, click to re-hash)
+- [x] v0.3 — recent-files history (last 10 hashed files, click to re-hash)
 - [ ] v0.4 — global hotkey ⌥⇧⌘H to open the popover from anywhere
 - [ ] v0.5 — drag-onto-menu-bar-icon (drop a file on the # icon → auto-hash)
 - [ ] v0.6 — multiple-file batch hashing

@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		9612C597F9D5295EF689DA24 /* HashGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DE9E718D39EEE43C7245B3D /* HashGenerator.swift */; };
 		C51D31E082E30D683810A154 /* MenuBarContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13A0E027F35B2192499FA230 /* MenuBarContentView.swift */; };
+		D7EBAE60958E697BC02A2226 /* FileHistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE192A860BAE48BAE66DB4FD /* FileHistoryStore.swift */; };
 		D9154CB0B0E448F9112EA867 /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF3C58E8B0C1FBAF99778669 /* StatusBarController.swift */; };
 		EFDD71F5A2578B4E4B42A5AC /* HashStackApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DD993C7DD39FD9B511336F /* HashStackApp.swift */; };
 		F0EB147B90F525D9A593AD7C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4D2DA61C853D5E9F6BCF49EC /* Assets.xcassets */; };
@@ -19,6 +20,7 @@
 		4D2DA61C853D5E9F6BCF49EC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		4EAA6F96437B765F95CF8C20 /* HashStack.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HashStack.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8DE9E718D39EEE43C7245B3D /* HashGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HashGenerator.swift; sourceTree = "<group>"; };
+		AE192A860BAE48BAE66DB4FD /* FileHistoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileHistoryStore.swift; sourceTree = "<group>"; };
 		BF3C58E8B0C1FBAF99778669 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
 		D6DD993C7DD39FD9B511336F /* HashStackApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HashStackApp.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -36,6 +38,7 @@
 			isa = PBXGroup;
 			children = (
 				4D2DA61C853D5E9F6BCF49EC /* Assets.xcassets */,
+				AE192A860BAE48BAE66DB4FD /* FileHistoryStore.swift */,
 				8DE9E718D39EEE43C7245B3D /* HashGenerator.swift */,
 				D6DD993C7DD39FD9B511336F /* HashStackApp.swift */,
 				13A0E027F35B2192499FA230 /* MenuBarContentView.swift */,
@@ -123,6 +126,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D7EBAE60958E697BC02A2226 /* FileHistoryStore.swift in Sources */,
 				9612C597F9D5295EF689DA24 /* HashGenerator.swift in Sources */,
 				EFDD71F5A2578B4E4B42A5AC /* HashStackApp.swift in Sources */,
 				C51D31E082E30D683810A154 /* MenuBarContentView.swift in Sources */,
@@ -142,7 +146,7 @@
 				CODE_SIGN_ENTITLEMENTS = HashStack/HashStack.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEAD_CODE_STRIPPING = YES;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -158,7 +162,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.2;
+				MARKETING_VERSION = 0.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.planbecreative.HashStack;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -312,7 +316,7 @@
 				CODE_SIGN_ENTITLEMENTS = HashStack/HashStack.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEAD_CODE_STRIPPING = YES;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -328,7 +332,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.2;
+				MARKETING_VERSION = 0.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.planbecreative.HashStack;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
