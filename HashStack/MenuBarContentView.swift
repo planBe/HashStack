@@ -8,6 +8,15 @@ enum InputMode: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
+/// Verification outcome — drives the ✓ MATCH / ✗ DIFFER indicator next to the
+/// expected-hash field. `.idle` is the no-expected-hash-entered state (no
+/// indicator shown).
+enum VerifyState {
+    case idle
+    case match
+    case differ
+}
+
 struct MenuBarContentView: View {
     @State private var algorithm: HashAlgorithm = .sha256
     @State private var inputMode: InputMode = .text
@@ -15,8 +24,10 @@ struct MenuBarContentView: View {
     @State private var pickedFileURL: URL?
     @State private var fileHashError: String?
     @State private var copiedFlash: Bool = false
+    @State private var isDropTargeted: Bool = false
+    @State private var expectedHash: String = ""
 
-    private let popoverWidth: CGFloat = 360
+    private let popoverWidth: CGFloat = 380
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -51,6 +62,8 @@ struct MenuBarContentView: View {
 
             hashOutputSection
 
+            verifySection
+
             Divider()
 
             Button("Quit hashStack") { NSApp.terminate(nil) }
@@ -59,6 +72,16 @@ struct MenuBarContentView: View {
         }
         .padding(14)
         .frame(width: popoverWidth)
+        // Whole-popover file drop: drag any file from Finder onto the popover
+        // and it switches to File mode + hashes it. Beats hunting for the
+        // Pick File... button.
+        .onDrop(of: [.fileURL], isTargeted: $isDropTargeted, perform: handleFileDrop)
+        .overlay(
+            RoundedRectangle(cornerRadius: 6)
+                .stroke(Color.accentColor, lineWidth: isDropTargeted ? 2 : 0)
+                .padding(2)
+                .allowsHitTesting(false)
+        )
     }
 
     // MARK: - Header
@@ -101,7 +124,7 @@ struct MenuBarContentView: View {
     private var fileInputSection: some View {
         VStack(alignment: .leading, spacing: 6) {
             Button(action: pickFile) {
-                Label(pickedFileURL?.lastPathComponent ?? "Pick File…",
+                Label(pickedFileURL?.lastPathComponent ?? "Pick File or Drop One Here…",
                       systemImage: "doc")
                     .frame(maxWidth: .infinity)
                     .lineLimit(1)
@@ -150,6 +173,59 @@ struct MenuBarContentView: View {
         }
     }
 
+    // MARK: - Verify (paste-expected + auto-compare)
+
+    private var verifySection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 6) {
+                Text("Verify")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                Spacer()
+                verifyBadge
+            }
+
+            TextField("Paste expected hash to compare…", text: $expectedHash)
+                .textFieldStyle(.plain)
+                .font(.system(size: 11, design: .monospaced))
+                .padding(6)
+                .background(Color(nsColor: .textBackgroundColor))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6)
+                        .stroke(verifyBorderColor, lineWidth: 1)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+        }
+    }
+
+    @ViewBuilder
+    private var verifyBadge: some View {
+        switch verifyState {
+        case .idle:
+            EmptyView()
+        case .match:
+            HStack(spacing: 3) {
+                Image(systemName: "checkmark.seal.fill").foregroundStyle(.green)
+                Text("MATCH").foregroundStyle(.green)
+                    .font(.system(size: 11, weight: .bold))
+            }
+        case .differ:
+            HStack(spacing: 3) {
+                Image(systemName: "xmark.seal.fill").foregroundStyle(.red)
+                Text("DIFFER").foregroundStyle(.red)
+                    .font(.system(size: 11, weight: .bold))
+            }
+        }
+    }
+
+    private var verifyBorderColor: Color {
+        switch verifyState {
+        case .idle: return Color(nsColor: .separatorColor)
+        case .match: return .green
+        case .differ: return .red
+        }
+    }
+
     // MARK: - State
 
     private var currentHash: String {
@@ -160,6 +236,14 @@ struct MenuBarContentView: View {
             guard let url = pickedFileURL else { return "" }
             return HashGenerator.hashFile(at: url, with: algorithm) ?? ""
         }
+    }
+
+    private var verifyState: VerifyState {
+        let expected = expectedHash.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !expected.isEmpty else { return .idle }
+        let computed = currentHash.lowercased()
+        guard !computed.isEmpty else { return .idle }
+        return expected == computed ? .match : .differ
     }
 
     // MARK: - Actions
@@ -179,12 +263,17 @@ struct MenuBarContentView: View {
         panel.prompt = "Hash"
 
         if panel.runModal() == .OK, let url = panel.url {
-            fileHashError = nil
-            pickedFileURL = url
-            if HashGenerator.hashFile(at: url, with: algorithm) == nil {
-                fileHashError = "Couldn't read file."
-                pickedFileURL = nil
-            }
+            adoptFile(url)
+        }
+    }
+
+    private func adoptFile(_ url: URL) {
+        fileHashError = nil
+        pickedFileURL = url
+        inputMode = .file
+        if HashGenerator.hashFile(at: url, with: algorithm) == nil {
+            fileHashError = "Couldn't read file."
+            pickedFileURL = nil
         }
     }
 
@@ -200,5 +289,19 @@ struct MenuBarContentView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             copiedFlash = false
         }
+    }
+
+    /// Whole-popover file drop. Switches to File mode and hashes the dropped
+    /// file. NSItemProvider is async — the input updates on the main queue
+    /// once the URL is resolved.
+    private func handleFileDrop(providers: [NSItemProvider]) -> Bool {
+        guard let provider = providers.first else { return false }
+        guard provider.canLoadObject(ofClass: URL.self) else { return false }
+
+        _ = provider.loadObject(ofClass: URL.self) { url, _ in
+            guard let url else { return }
+            DispatchQueue.main.async { self.adoptFile(url) }
+        }
+        return true
     }
 }

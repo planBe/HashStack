@@ -10,17 +10,23 @@ to [clipStack](https://github.com/planBe/ClipStack),
 
 ## Status
 
-**v0.1 — early development.** Working menu bar app with live text hashing,
-file hashing via picker, and copy-to-clipboard. Drag-and-drop file support,
-recent-files history, and hash-verification mode are planned for later
-versions.
+**v0.2 — in development.** Working menu bar app with live text + file
+hashing, drag-and-drop, verify mode (paste expected hash for an auto ✓/✗
+match), and copy-to-clipboard. Recent-files history and configurable global
+hotkey are planned for later versions.
 
-## Features (v0.1)
+## Features (v0.2)
 
 - Lives in the menu bar; no Dock icon
 - Live hash output as you type
-- File hashing via standard macOS Open File dialog (streams in 1 MB chunks —
-  large files don't load fully into memory)
+- **Verify mode** — paste the expected hash in the field below the output;
+  hashStack auto-compares and shows a big ✓ MATCH (green) or ✗ DIFFER (red)
+  next to your input. Case- and whitespace-insensitive comparison
+- **Drag-and-drop files** anywhere onto the popover — auto-switches to File
+  mode and hashes the dropped file. Or use the standard macOS Open File
+  dialog if you prefer
+- File hashing streams in 1 MB chunks — large files don't load fully into
+  memory
 - Four algorithms: MD5, SHA-1, SHA-256, SHA-512
 - One-click pull text from the system clipboard
 - One-click copy hash to the system clipboard
@@ -56,10 +62,13 @@ Then ⌘R in Xcode.
 ## Roadmap
 
 - [x] v0.1 — live menu bar hash generator (text + file) with copy-to-clipboard
-- [ ] v0.2 — drag-and-drop files onto the popover; multiple-file batch hashing
-- [ ] v0.3 — verify mode: paste expected hash + compare to computed
-- [ ] v0.4 — recent-files history
-- [ ] v0.5 — configurable global hotkey
+- [x] v0.2 — verify mode (paste expected hash, auto ✓/✗ compare),
+  drag-and-drop files onto the popover, NSStatusItem refactor for sticky
+  popover behavior
+- [ ] v0.3 — recent-files history (last 10 hashed files, click to re-hash)
+- [ ] v0.4 — global hotkey ⌥⇧⌘H to open the popover from anywhere
+- [ ] v0.5 — drag-onto-menu-bar-icon (drop a file on the # icon → auto-hash)
+- [ ] v0.6 — multiple-file batch hashing
 - [ ] v1.0 — App Store + notarized GitHub Release
 
 ## License
