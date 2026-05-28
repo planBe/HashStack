@@ -18,8 +18,15 @@ struct HashStackApp: App {
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusBarController: StatusBarController?
+    private var hotkeyManager: HotkeyManager?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        statusBarController = StatusBarController()
+        let controller = StatusBarController()
+        self.statusBarController = controller
+
+        // ⌥⇧⌘H opens the popover from anywhere — see HotkeyManager for chord audit.
+        self.hotkeyManager = HotkeyManager { [weak controller] in
+            controller?.togglePopover(nil)
+        }
     }
 }

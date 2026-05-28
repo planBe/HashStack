@@ -10,12 +10,13 @@ to [clipStack](https://github.com/planBe/ClipStack),
 
 ## Status
 
-**v0.3 — in development.** Working menu bar app with live text + file
+**v0.4 — in development.** Working menu bar app with live text + file
 hashing, drag-and-drop, verify mode (paste expected hash for an auto ✓/✗
-match), recent-files history, and copy-to-clipboard. Configurable global
-hotkey is planned for a later version.
+match), recent-files history, copy-to-clipboard, and a global hotkey
+(⌥⇧⌘H) to pop the menu from anywhere. Configurable hotkey binding is
+planned for a later version.
 
-## Features (v0.3)
+## Features (v0.4)
 
 - Lives in the menu bar; no Dock icon
 - Live hash output as you type
@@ -31,6 +32,8 @@ hotkey is planned for a later version.
 - File hashing streams in 1 MB chunks — large files don't load fully into
   memory
 - Four algorithms: MD5, SHA-1, SHA-256, SHA-512
+- **Global hotkey ⌥⇧⌘H** opens the popover from any app, even when hashStack
+  doesn't have focus
 - One-click pull text from the system clipboard
 - One-click copy hash to the system clipboard
 - Pure SwiftUI + AppKit + CryptoKit; zero third-party dependencies
@@ -69,9 +72,11 @@ Then ⌘R in Xcode.
   drag-and-drop files onto the popover, NSStatusItem refactor for sticky
   popover behavior
 - [x] v0.3 — recent-files history (last 10 hashed files, click to re-hash)
-- [ ] v0.4 — global hotkey ⌥⇧⌘H to open the popover from anywhere
-- [ ] v0.5 — drag-onto-menu-bar-icon (drop a file on the # icon → auto-hash)
-- [ ] v0.6 — multiple-file batch hashing
+- [x] v0.4 — global hotkey ⌥⇧⌘H to open the popover from anywhere (Carbon
+  RegisterEventHotKey; sandbox-clean, no Accessibility permission required)
+- [ ] v0.5 — configurable hotkey binding (Settings UI)
+- [ ] v0.6 — drag-onto-menu-bar-icon (drop a file on the # icon → auto-hash)
+- [ ] v0.7 — multiple-file batch hashing
 - [ ] v1.0 — App Store + notarized GitHub Release
 
 ## License
