@@ -10,13 +10,13 @@ to [clipStack](https://github.com/planBe/ClipStack),
 
 ## Status
 
-**v0.4 — in development.** Working menu bar app with live text + file
+**v1.0.** Free menu bar hash generator for macOS — live text + file
 hashing, drag-and-drop, verify mode (paste expected hash for an auto ✓/✗
 match), recent-files history, copy-to-clipboard, and a global hotkey
 (⌥⇧⌘H) to pop the menu from anywhere. Configurable hotkey binding is
-planned for a later version.
+planned for a post-1.0 release.
 
-## Features (v0.4)
+## Features
 
 - Lives in the menu bar; no Dock icon
 - Live hash output as you type
@@ -74,10 +74,10 @@ Then ⌘R in Xcode.
 - [x] v0.3 — recent-files history (last 10 hashed files, click to re-hash)
 - [x] v0.4 — global hotkey ⌥⇧⌘H to open the popover from anywhere (Carbon
   RegisterEventHotKey; sandbox-clean, no Accessibility permission required)
-- [ ] v0.5 — configurable hotkey binding (Settings UI)
-- [ ] v0.6 — drag-onto-menu-bar-icon (drop a file on the # icon → auto-hash)
-- [ ] v0.7 — multiple-file batch hashing
-- [ ] v1.0 — App Store + notarized GitHub Release
+- [x] v1.0 — first Mac App Store release (consolidates v0.1–v0.4)
+- [ ] v1.1 — configurable hotkey binding (Settings UI)
+- [ ] v1.2 — drag-onto-menu-bar-icon (drop a file on the # icon → auto-hash)
+- [ ] v1.3 — multiple-file batch hashing
 
 ## License
 
