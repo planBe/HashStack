@@ -21,6 +21,25 @@ struct HashVerifierTests {
         #expect(HashVerifier.state(expected: "sha-256:\(sha)", computed: sha) == .match)
     }
 
+    /// Second pass, 2026-09-29. The commonest thing to paste is a line from a
+    /// SHA256SUMS file, which carries the file name. Removing whitespace glued
+    /// the name onto the digest, so a correct download showed DIFFER.
+    @Test("A checksum-file line (GNU or BSD format) matches on its digest")
+    func checksumFileLines() {
+        #expect(HashVerifier.state(expected: "\(sha)  ubuntu-24.04-desktop-amd64.iso", computed: sha) == .match)
+        #expect(HashVerifier.state(expected: "\(sha) *setup.exe\n", computed: sha) == .match)
+        #expect(HashVerifier.state(expected: "SHA256 (Xcode 26.xip) = \(sha)", computed: sha) == .match)
+        // The file name must not rescue a wrong digest.
+        var wrong = sha
+        wrong.removeLast()
+        wrong.append("e")
+        #expect(HashVerifier.state(expected: "\(wrong)  ubuntu.iso", computed: sha) == .differ)
+        // A SHA-256 wrapped as two 32-character halves looks like two MD5
+        // words; it must still match as one digest.
+        let half = sha.index(sha.startIndex, offsetBy: 32)
+        #expect(HashVerifier.state(expected: "\(sha[..<half])\n\(sha[half...])", computed: sha) == .match)
+    }
+
     @Test("A one-character difference is DIFFER")
     func oneCharDiffers() {
         var wrong = sha
