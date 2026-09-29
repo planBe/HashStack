@@ -10,7 +10,12 @@ final class FileHistoryStore: ObservableObject {
     private let key = "HashStack.fileHistory.v1"
     private let maxItems = 10
 
-    init() {
+    private let defaults: UserDefaults
+
+    /// `defaults` is injectable so unit tests use a throwaway suite instead of
+    /// the user's real history. The app always uses `.standard`.
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
         load()
     }
 
@@ -31,12 +36,12 @@ final class FileHistoryStore: ObservableObject {
     }
 
     private func load() {
-        if let stored = UserDefaults.standard.array(forKey: key) as? [String] {
+        if let stored = defaults.array(forKey: key) as? [String] {
             paths = stored
         }
     }
 
     private func save() {
-        UserDefaults.standard.set(paths, forKey: key)
+        defaults.set(paths, forKey: key)
     }
 }

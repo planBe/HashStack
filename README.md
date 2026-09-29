@@ -65,6 +65,12 @@ open HashStack.xcodeproj
 
 Then ⌘R in Xcode.
 
+Run the unit tests (known-answer digests (MD5/SHA-1/SHA-256/SHA-512), streamed-file vs one-shot equality across the 1 MB chunk boundary, and the history store). They don't launch the app:
+
+```sh
+xcodebuild -project HashStack.xcodeproj -scheme HashStack -destination 'platform=macOS' test
+```
+
 ## Roadmap
 
 - [x] v0.1 — live menu bar hash generator (text + file) with copy-to-clipboard

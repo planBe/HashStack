@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0A6277FD25F60B527807D21B /* FileHistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE192A860BAE48BAE66DB4FD /* FileHistoryStore.swift */; };
+		33A19C56BFBF3F55270321A7 /* HashGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DE9E718D39EEE43C7245B3D /* HashGenerator.swift */; };
+		5C4C89E4461F3C7DF4BA93BB /* HashGeneratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C879ABCD71A72A319299CECD /* HashGeneratorTests.swift */; };
 		9612C597F9D5295EF689DA24 /* HashGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DE9E718D39EEE43C7245B3D /* HashGenerator.swift */; };
 		C10AA79BD7584337182DE82D /* HotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4587F629DEB1DD987F289FF3 /* HotkeyManager.swift */; };
 		C51D31E082E30D683810A154 /* MenuBarContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13A0E027F35B2192499FA230 /* MenuBarContentView.swift */; };
@@ -17,6 +20,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		05F3F366AB3D45E95F63F528 /* HashStackTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HashStackTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		13A0E027F35B2192499FA230 /* MenuBarContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarContentView.swift; sourceTree = "<group>"; };
 		4587F629DEB1DD987F289FF3 /* HotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyManager.swift; sourceTree = "<group>"; };
 		4D2DA61C853D5E9F6BCF49EC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -24,6 +28,7 @@
 		8DE9E718D39EEE43C7245B3D /* HashGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HashGenerator.swift; sourceTree = "<group>"; };
 		AE192A860BAE48BAE66DB4FD /* FileHistoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileHistoryStore.swift; sourceTree = "<group>"; };
 		BF3C58E8B0C1FBAF99778669 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
+		C879ABCD71A72A319299CECD /* HashGeneratorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HashGeneratorTests.swift; sourceTree = "<group>"; };
 		D6DD993C7DD39FD9B511336F /* HashStackApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HashStackApp.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -32,8 +37,17 @@
 			isa = PBXGroup;
 			children = (
 				4EAA6F96437B765F95CF8C20 /* HashStack.app */,
+				05F3F366AB3D45E95F63F528 /* HashStackTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		6DF41EABBB8C41351D120E23 /* HashStackTests */ = {
+			isa = PBXGroup;
+			children = (
+				C879ABCD71A72A319299CECD /* HashGeneratorTests.swift */,
+			);
+			path = HashStackTests;
 			sourceTree = "<group>";
 		};
 		775C2B7132ED7DC1CBC81E24 /* HashStack */ = {
@@ -54,6 +68,7 @@
 			isa = PBXGroup;
 			children = (
 				775C2B7132ED7DC1CBC81E24 /* HashStack */,
+				6DF41EABBB8C41351D120E23 /* HashStackTests */,
 				39A5349999CC32C99CB2C345 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -79,6 +94,23 @@
 			productReference = 4EAA6F96437B765F95CF8C20 /* HashStack.app */;
 			productType = "com.apple.product-type.application";
 		};
+		CEDD1F9AADCAA82118B5E0D3 /* HashStackTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BD3FCBD3AABCB3DE917FC987 /* Build configuration list for PBXNativeTarget "HashStackTests" */;
+			buildPhases = (
+				6DEDF5FD217C6B7D70518F7D /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HashStackTests;
+			packageProductDependencies = (
+			);
+			productName = HashStackTests;
+			productReference = 05F3F366AB3D45E95F63F528 /* HashStackTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -89,6 +121,10 @@
 				LastUpgradeCheck = 2650;
 				TargetAttributes = {
 					C62F73E65CA94DA3C11F0249 = {
+						DevelopmentTeam = X22WKZG6P4;
+						ProvisioningStyle = Automatic;
+					};
+					CEDD1F9AADCAA82118B5E0D3 = {
 						DevelopmentTeam = X22WKZG6P4;
 						ProvisioningStyle = Automatic;
 					};
@@ -109,6 +145,7 @@
 			projectRoot = "";
 			targets = (
 				C62F73E65CA94DA3C11F0249 /* HashStack */,
+				CEDD1F9AADCAA82118B5E0D3 /* HashStackTests */,
 			);
 		};
 /* End PBXProject section */
@@ -125,6 +162,16 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		6DEDF5FD217C6B7D70518F7D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0A6277FD25F60B527807D21B /* FileHistoryStore.swift in Sources */,
+				33A19C56BFBF3F55270321A7 /* HashGenerator.swift in Sources */,
+				5C4C89E4461F3C7DF4BA93BB /* HashGeneratorTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		EC98C6710FA07EB6FEFC219C /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -249,6 +296,26 @@
 			};
 			name = Debug;
 		};
+		1CAC698BF661A1FCCB622FFE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.planbecreative.HashStackTests;
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+			};
+			name = Debug;
+		};
 		91A908DCAEDD77C5CCD78305 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -350,6 +417,26 @@
 			};
 			name = Release;
 		};
+		EB95661F6F7ACFC0145DEE32 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.planbecreative.HashStackTests;
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -367,6 +454,15 @@
 			buildConfigurations = (
 				150B452C2982A3EE095F91FD /* Debug */,
 				91A908DCAEDD77C5CCD78305 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BD3FCBD3AABCB3DE917FC987 /* Build configuration list for PBXNativeTarget "HashStackTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1CAC698BF661A1FCCB622FFE /* Debug */,
+				EB95661F6F7ACFC0145DEE32 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
