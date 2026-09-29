@@ -64,8 +64,12 @@ struct HashGeneratorTests {
 
 struct FileHistoryStoreTests {
 
-    private func makeDefaults() -> UserDefaults {
-        let name = "HashStackTests.\(UUID().uuidString)"
+    /// One fixed suite per test function, emptied before use. A fresh UUID per
+    /// run left a new plist in ~/Library/Preferences every time the tests ran
+    /// (removing a domain empties the file but never deletes it); a fixed name
+    /// keeps the count bounded at one file per test.
+    private func makeDefaults(_ test: String = #function) -> UserDefaults {
+        let name = "HashStackTests.\(test.filter { $0.isLetter || $0.isNumber })"
         let d = UserDefaults(suiteName: name)!
         d.removePersistentDomain(forName: name)
         return d
