@@ -1,7 +1,7 @@
 import CryptoKit
 import Foundation
 
-enum HashAlgorithm: String, CaseIterable, Identifiable {
+nonisolated enum HashAlgorithm: String, CaseIterable, Identifiable {
     case md5 = "MD5"
     case sha1 = "SHA-1"
     case sha256 = "SHA-256"
@@ -10,7 +10,9 @@ enum HashAlgorithm: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
-enum HashGenerator {
+/// `nonisolated`: pure functions, and file hashing runs off the main thread
+/// (see FileHashModel). The app target defaults to MainActor isolation.
+nonisolated enum HashGenerator {
     static func hash(_ data: Data, with algorithm: HashAlgorithm) -> String {
         switch algorithm {
         case .md5: return Insecure.MD5.hash(data: data).hexString
@@ -63,7 +65,7 @@ enum HashGenerator {
 }
 
 private extension Sequence where Element == UInt8 {
-    var hexString: String {
+    nonisolated var hexString: String {
         map { String(format: "%02x", $0) }.joined()
     }
 }

@@ -8,17 +8,10 @@ enum InputMode: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
-/// Verification outcome — drives the ✓ MATCH / ✗ DIFFER indicator next to the
-/// expected-hash field. `.idle` is the no-expected-hash-entered state (no
-/// indicator shown).
-enum VerifyState {
-    case idle
-    case match
-    case differ
-}
-
 struct MenuBarContentView: View {
     @StateObject private var fileHistory = FileHistoryStore()
+    /// Computes file digests off the main thread, once per (file, algorithm).
+    @StateObject private var fileHash = FileHashModel()
     @State private var algorithm: HashAlgorithm = .sha256
     @State private var inputMode: InputMode = .text
     @State private var inputText: String = ""
@@ -88,6 +81,20 @@ struct MenuBarContentView: View {
                 .padding(2)
                 .allowsHitTesting(false)
         )
+        // Single-parameter onChange: the app still deploys to macOS 13.
+        .onChange(of: algorithm) { newAlgorithm in
+            fileHash.request(url: pickedFileURL, algorithm: newAlgorithm)
+        }
+        .onChange(of: fileHash.result) { digest in
+            // Only a file that actually hashed goes into Recent Files.
+            if digest != nil, let url = pickedFileURL { fileHistory.add(url) }
+        }
+        .onChange(of: fileHash.failedURL) { failed in
+            guard let failed, failed == pickedFileURL else { return }
+            fileHashError = "Couldn't read file (it may have moved or been deleted)."
+            pickedFileURL = nil
+            fileHash.request(url: nil, algorithm: algorithm)
+        }
     }
 
     // MARK: - Header
@@ -151,9 +158,10 @@ struct MenuBarContentView: View {
     @ViewBuilder
     private var hashOutputSection: some View {
         let hashValue = currentHash
+        let hashing = inputMode == .file && fileHash.isHashing
         VStack(alignment: .leading, spacing: 6) {
             ScrollView {
-                Text(hashValue.isEmpty ? "—" : hashValue)
+                Text(hashValue.isEmpty ? (hashing ? "Hashing…" : "—") : hashValue)
                     .font(.system(size: 11, design: .monospaced))
                     .textSelection(.enabled)
                     .foregroundStyle(hashValue.isEmpty ? .secondary : .primary)
@@ -272,17 +280,14 @@ struct MenuBarContentView: View {
         case .text:
             return inputText.isEmpty ? "" : HashGenerator.hash(inputText, with: algorithm)
         case .file:
-            guard let url = pickedFileURL else { return "" }
-            return HashGenerator.hashFile(at: url, with: algorithm) ?? ""
+            // Never hash here: `body` reads this several times per render.
+            // FileHashModel computes it once, off the main thread.
+            return pickedFileURL == nil ? "" : (fileHash.result ?? "")
         }
     }
 
     private var verifyState: VerifyState {
-        let expected = expectedHash.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        guard !expected.isEmpty else { return .idle }
-        let computed = currentHash.lowercased()
-        guard !computed.isEmpty else { return .idle }
-        return expected == computed ? .match : .differ
+        HashVerifier.state(expected: expectedHash, computed: currentHash)
     }
 
     // MARK: - Actions
@@ -310,12 +315,11 @@ struct MenuBarContentView: View {
         fileHashError = nil
         pickedFileURL = url
         inputMode = .file
-        if HashGenerator.hashFile(at: url, with: algorithm) == nil {
-            fileHashError = "Couldn't read file (it may have moved or been deleted)."
-            pickedFileURL = nil
-        } else {
-            fileHistory.add(url)
-        }
+        // Readability and Recent Files are settled by the model's result
+        // (see the onChange handlers on `body`), not by a second, blocking hash.
+        // Reset first so re-picking the same file re-reads it from disk.
+        fileHash.request(url: nil, algorithm: algorithm)
+        fileHash.request(url: url, algorithm: algorithm)
     }
 
     private func copyHash(_ value: String) {

@@ -77,6 +77,8 @@ targets:
       - path: HashStackTests
       - path: HashStack/HashGenerator.swift
       - path: HashStack/FileHistoryStore.swift
+      - path: HashStack/HashVerifier.swift
+      - path: HashStack/FileHashModel.swift
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.planbecreative.HashStackTests
