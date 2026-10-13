@@ -10,6 +10,8 @@ import Foundation
 /// the Verify field. Now the view only ever reads `result`.
 @MainActor
 final class FileHashModel: ObservableObject {
+    /// Runs inside a detached task that is cancelled when the request is
+    /// superseded, so it can poll `Task.isCancelled` and give up early.
     typealias HashFunction = @Sendable (URL, HashAlgorithm) -> String?
 
     /// The digest for the current request, or nil while hashing / on failure.
@@ -56,9 +58,16 @@ final class FileHashModel: ObservableObject {
 
         let hashFunction = self.hashFunction
         task = Task { [weak self] in
-            let digest = await Task.detached(priority: .userInitiated) {
+            // A detached task does not inherit cancellation, so pass it on;
+            // otherwise a superseded multi-GB file keeps being read to the end.
+            let work = Task.detached(priority: .userInitiated) {
                 hashFunction(url, algorithm)
-            }.value
+            }
+            let digest = await withTaskCancellationHandler {
+                await work.value
+            } onCancel: {
+                work.cancel()
+            }
             guard let self, !Task.isCancelled, self.currentKey == key else { return }
             self.result = digest
             self.failedURL = digest == nil ? url : nil

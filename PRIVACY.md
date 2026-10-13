@@ -1,6 +1,6 @@
 # Privacy Policy — hashStack
 
-**Last updated:** 2026-05-27
+**Last updated:** 2026-10-12
 
 hashStack is a local-only macOS menu bar hash generator. It does not collect,
 transmit, store, or share any user data.
@@ -19,6 +19,11 @@ The text you type is held in memory while the popover is open and discarded
 when the app quits. hashStack does not write your input or any file content
 to disk.
 
+**Recent Files** keeps the last 10 files you hashed in hashStack's own
+preferences on your Mac: each file's path and a macOS bookmark that lets
+hashStack read that file again after a restart, the same way the Open dialog
+did. Click **Clear** to remove the list.
+
 ## Network
 
 hashStack makes no network requests of any kind. There is no telemetry,
@@ -34,10 +39,12 @@ clipboard. No other clipboard access occurs.
 ## App Sandbox
 
 hashStack runs inside macOS's App Sandbox with the most restrictive default
-profile plus a single file-system entitlement
-(`com.apple.security.files.user-selected.read-only`) that allows reading
-files you explicitly pick via the standard macOS Open File dialog. With that
-entitlement, hashStack can read a file ONLY when you pick it via the dialog
+profile plus two file-system entitlements:
+`com.apple.security.files.user-selected.read-only`, which allows reading
+files you explicitly pick via the standard macOS Open File dialog or drop
+onto the popover, and `com.apple.security.files.bookmarks.app-scope`, which
+lets Recent Files re-read those same files, read-only, after a restart.
+hashStack can read a file ONLY when you have picked or dropped it yourself
 — there is no broader file system access, no scanning, no enumeration.
 
 ## Open source

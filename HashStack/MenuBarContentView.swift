@@ -93,6 +93,7 @@ struct MenuBarContentView: View {
             guard let failed, failed == pickedFileURL else { return }
             fileHashError = "Couldn't read file (it may have moved or been deleted)."
             pickedFileURL = nil
+            fileHistory.releaseAccess()
             fileHash.request(url: nil, algorithm: algorithm)
         }
     }
@@ -257,7 +258,8 @@ struct MenuBarContentView: View {
             }
 
             ForEach(fileHistory.paths, id: \.self) { path in
-                Button(action: { adoptFile(URL(fileURLWithPath: path)) }) {
+                // Through the bookmark: a bare path is unreadable after a relaunch.
+                Button(action: { adoptFile(fileHistory.open(path)) }) {
                     Text((path as NSString).lastPathComponent)
                         .font(.system(size: 11, design: .monospaced))
                         .lineLimit(1)
@@ -307,6 +309,7 @@ struct MenuBarContentView: View {
         panel.prompt = "Hash"
 
         if panel.runModal() == .OK, let url = panel.url {
+            fileHistory.releaseAccess()
             adoptFile(url)
         }
     }
@@ -345,7 +348,10 @@ struct MenuBarContentView: View {
 
         _ = provider.loadObject(ofClass: URL.self) { url, _ in
             guard let url else { return }
-            DispatchQueue.main.async { self.adoptFile(url) }
+            DispatchQueue.main.async {
+                self.fileHistory.releaseAccess()
+                self.adoptFile(url)
+            }
         }
         return true
     }

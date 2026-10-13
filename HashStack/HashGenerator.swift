@@ -28,39 +28,34 @@ nonisolated enum HashGenerator {
     }
 
     /// Streams the file in 1 MB chunks so large files don't get loaded into
-    /// memory all at once. Returns nil if the file can't be opened.
-    static func hashFile(at url: URL, with algorithm: HashAlgorithm) -> String? {
+    /// memory all at once. Returns nil if the file can't be opened, or if
+    /// `isCancelled` turns true — it is asked before every chunk, so a
+    /// superseded hash stops within one chunk instead of reading to the end.
+    /// The default reads the calling task's cancellation (FileHashModel).
+    static func hashFile(at url: URL, with algorithm: HashAlgorithm,
+                         isCancelled: () -> Bool = { Task.isCancelled }) -> String? {
         guard let handle = try? FileHandle(forReadingFrom: url) else { return nil }
         defer { try? handle.close() }
 
-        let chunkSize = 1024 * 1024  // 1 MB
-
         switch algorithm {
-        case .md5:
-            var hasher = Insecure.MD5()
-            while case let chunk = handle.readData(ofLength: chunkSize), !chunk.isEmpty {
-                hasher.update(data: chunk)
-            }
-            return hasher.finalize().hexString
-        case .sha1:
-            var hasher = Insecure.SHA1()
-            while case let chunk = handle.readData(ofLength: chunkSize), !chunk.isEmpty {
-                hasher.update(data: chunk)
-            }
-            return hasher.finalize().hexString
-        case .sha256:
-            var hasher = SHA256()
-            while case let chunk = handle.readData(ofLength: chunkSize), !chunk.isEmpty {
-                hasher.update(data: chunk)
-            }
-            return hasher.finalize().hexString
-        case .sha512:
-            var hasher = SHA512()
-            while case let chunk = handle.readData(ofLength: chunkSize), !chunk.isEmpty {
-                hasher.update(data: chunk)
-            }
-            return hasher.finalize().hexString
+        case .md5: return stream(Insecure.MD5(), from: handle, isCancelled: isCancelled)
+        case .sha1: return stream(Insecure.SHA1(), from: handle, isCancelled: isCancelled)
+        case .sha256: return stream(SHA256(), from: handle, isCancelled: isCancelled)
+        case .sha512: return stream(SHA512(), from: handle, isCancelled: isCancelled)
         }
+    }
+
+    private static func stream<H: CryptoKit.HashFunction>(_ hasher: H, from handle: FileHandle,
+                                                          isCancelled: () -> Bool) -> String? {
+        let chunkSize = 1024 * 1024  // 1 MB
+        var hasher = hasher
+        while true {
+            if isCancelled() { return nil }
+            let chunk = handle.readData(ofLength: chunkSize)
+            if chunk.isEmpty { break }
+            hasher.update(data: chunk)
+        }
+        return hasher.finalize().hexString
     }
 }
 

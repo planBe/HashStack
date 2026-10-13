@@ -32,7 +32,8 @@ Then ⌘R in Xcode to build and launch.
     picker, algorithm picker, hash output, copy button)
   - `Assets.xcassets/` — `AppIcon` + `AccentColor`
   - `HashStack.entitlements` — App Sandbox + `files.user-selected.read-only`
-    (for the Pick File... button)
+    (for the Pick File... button) + `files.bookmarks.app-scope` (so Recent
+    Files can re-read a file after a relaunch)
 
 ## Build settings
 

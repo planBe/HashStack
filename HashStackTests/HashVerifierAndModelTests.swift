@@ -67,6 +67,17 @@ private final class CallCounter: @unchecked Sendable {
     var sawMainThread = false
 }
 
+/// Records how far a fake hash got and whether it saw its cancellation.
+private final class ChunkProbe: @unchecked Sendable {
+    private let lock = NSLock()
+    private var read = 0
+    private var cancelled = false
+    func chunk() { lock.lock(); read += 1; lock.unlock() }
+    func sawCancel() { lock.lock(); cancelled = true; lock.unlock() }
+    var chunks: Int { lock.lock(); defer { lock.unlock() }; return read }
+    var wasCancelled: Bool { lock.lock(); defer { lock.unlock() }; return cancelled }
+}
+
 @MainActor
 struct FileHashModelTests {
     private let fileA = URL(fileURLWithPath: "/tmp/a.bin")
@@ -110,6 +121,33 @@ struct FileHashModelTests {
         try? await Task.sleep(nanoseconds: 400_000_000)
         #expect(model.result == "b.bin")
         #expect(!model.isHashing)
+    }
+
+    /// Found by the 2026-09-29 second pass: the stale result was discarded, but the
+    /// detached hash of the old file kept reading to the end — a multi-GB
+    /// file picked by mistake held a core and the disk for seconds.
+    @Test("A superseded file stops being read within a chunk")
+    func supersededHashStops() async throws {
+        let probe = ChunkProbe()
+        let model = FileHashModel { url, _ in
+            guard url.lastPathComponent == "a.bin" else { return url.lastPathComponent }
+            for _ in 0..<200 {  // 200 × 10 ms chunks: a 2 s file
+                if Task.isCancelled { probe.sawCancel(); return nil }
+                Thread.sleep(forTimeInterval: 0.01)
+                probe.chunk()
+            }
+            return "a.bin"
+        }
+        model.request(url: fileA, algorithm: .sha256)
+        try await Task.sleep(nanoseconds: 100_000_000)
+        let before = probe.chunks
+        model.request(url: fileB, algorithm: .sha256)
+        await model.waitUntilIdle()
+        try await Task.sleep(nanoseconds: 100_000_000)
+        #expect(before > 0, "the old file was not mid-read, so this proves nothing")
+        #expect(probe.wasCancelled, "the old file's hash was never told it was superseded")
+        #expect(probe.chunks <= before + 2, "read \(probe.chunks - before) chunks after being superseded")
+        #expect(model.result == "b.bin")
     }
 
     @Test("An unreadable file reports failure instead of a hash")

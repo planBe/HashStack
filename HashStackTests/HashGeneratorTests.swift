@@ -45,6 +45,25 @@ struct HashGeneratorTests {
         }
     }
 
+    @Test("A cancelled file hash stops within one chunk and returns nil")
+    func cancelledFileHash() throws {
+        let data = Data(repeating: 0xAB, count: 5 * 1024 * 1024)
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("HashStackTests-\(UUID().uuidString).bin")
+        try data.write(to: url)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        for algorithm in HashAlgorithm.allCases {
+            var asks = 0
+            let digest = HashGenerator.hashFile(at: url, with: algorithm) { asks += 1; return asks > 2 }
+            #expect(digest == nil, "\(algorithm.rawValue) returned a digest after cancellation")
+            // Asked before each chunk: two read, refused before the third of five.
+            #expect(asks == 3, "\(algorithm.rawValue) asked \(asks) times")
+        }
+        #expect(HashGenerator.hashFile(at: url, with: .sha256, isCancelled: { false })
+                == HashGenerator.hash(data, with: .sha256))
+    }
+
     @Test("A missing file returns nil rather than a digest of nothing")
     func missingFile() {
         let url = URL(fileURLWithPath: "/nonexistent/HashStackTests-\(UUID().uuidString)")
@@ -88,5 +107,173 @@ struct FileHistoryStoreTests {
         #expect(FileHistoryStore(defaults: defaults).paths == store.paths)
         store.clear()
         #expect(FileHistoryStore(defaults: defaults).paths.isEmpty)
+    }
+
+    /// Stands in for the sandbox: a bookmark is the path's bytes, and every
+    /// call the store makes is recorded.
+    private final class FakeBookmarks {
+        var started: [String] = []
+        var stopped: [String] = []
+        var made = 0
+        var failMake = false
+        /// Bookmarked path → where the file is now.
+        var moves: [String: String] = [:]
+        var stale: Set<String> = []
+        var unresolvable: Set<String> = []
+
+        var bookmarks: FileBookmarks {
+            FileBookmarks(
+                make: { url in
+                    if self.failMake { return nil }
+                    self.made += 1
+                    return Data(url.path.utf8)
+                },
+                resolve: { data in
+                    let path = String(decoding: data, as: UTF8.self)
+                    if self.unresolvable.contains(path) { return nil }
+                    return (URL(fileURLWithPath: self.moves[path] ?? path), self.stale.contains(path))
+                },
+                startAccess: { url in
+                    self.started.append(url.path)
+                    return true
+                },
+                stopAccess: { url in self.stopped.append(url.path) })
+        }
+    }
+
+    @Test("Re-opening a recent file goes through its bookmark and holds access until the next pick")
+    func openHoldsAccess() {
+        let fake = FakeBookmarks()
+        let store = FileHistoryStore(defaults: makeDefaults(), bookmarks: fake.bookmarks)
+        store.add(URL(fileURLWithPath: "/tmp/a"))
+        store.add(URL(fileURLWithPath: "/tmp/b"))
+        #expect(store.entries.allSatisfy { $0.bookmark != nil })
+
+        #expect(store.open("/tmp/a").path == "/tmp/a")
+        #expect(fake.started == ["/tmp/a"])
+        #expect(fake.stopped.isEmpty)
+
+        _ = store.open("/tmp/b")
+        #expect(fake.started == ["/tmp/a", "/tmp/b"])
+        #expect(fake.stopped == ["/tmp/a"])
+
+        // The same file again starts before it stops, so access never lapses.
+        _ = store.open("/tmp/b")
+        #expect(fake.started == ["/tmp/a", "/tmp/b", "/tmp/b"])
+        #expect(fake.stopped == ["/tmp/a", "/tmp/b"])
+
+        store.releaseAccess()
+        store.releaseAccess()
+        #expect(fake.stopped.count == fake.started.count)
+    }
+
+    @Test("Bookmarks survive a relaunch; a moved file is followed and its row takes the new path")
+    func movedFileFollowed() {
+        let defaults = makeDefaults()
+        let fake = FakeBookmarks()
+        let store = FileHistoryStore(defaults: defaults, bookmarks: fake.bookmarks)
+        store.add(URL(fileURLWithPath: "/tmp/old"))
+        store.add(URL(fileURLWithPath: "/tmp/new"))
+        store.add(URL(fileURLWithPath: "/tmp/other"))
+
+        let relaunched = FileHistoryStore(defaults: defaults, bookmarks: fake.bookmarks)
+        #expect(relaunched.entries == store.entries)
+
+        // Moved on top of a file that has its own row: one row is left.
+        fake.moves["/tmp/old"] = "/tmp/new"
+        #expect(relaunched.open("/tmp/old").path == "/tmp/new")
+        #expect(relaunched.paths == ["/tmp/other", "/tmp/new"])
+        #expect(FileHistoryStore(defaults: defaults, bookmarks: fake.bookmarks).paths == ["/tmp/other", "/tmp/new"])
+    }
+
+    @Test("A stale bookmark still opens, and the next successful add replaces it")
+    func staleBookmark() {
+        let fake = FakeBookmarks()
+        let store = FileHistoryStore(defaults: makeDefaults(), bookmarks: fake.bookmarks)
+        store.add(URL(fileURLWithPath: "/tmp/s"))
+        fake.stale.insert("/tmp/s")
+        let url = store.open("/tmp/s")
+        #expect(url.path == "/tmp/s")
+        #expect(fake.started == ["/tmp/s"])
+        store.add(url)
+        #expect(fake.made == 2)
+    }
+
+    @Test("A failed bookmark keeps the one the row already had")
+    func failedBookmarkKeepsOld() {
+        let fake = FakeBookmarks()
+        let store = FileHistoryStore(defaults: makeDefaults(), bookmarks: fake.bookmarks)
+        store.add(URL(fileURLWithPath: "/tmp/k"))
+        let kept = store.entries[0].bookmark
+        fake.failMake = true
+        store.add(URL(fileURLWithPath: "/tmp/k"))
+        #expect(kept != nil)
+        #expect(store.entries[0].bookmark == kept)
+        store.add(URL(fileURLWithPath: "/tmp/fresh"))
+        #expect(store.entries[0].bookmark == nil)
+    }
+
+    @Test("No bookmark, or one that no longer resolves, falls back to the path and starts no access")
+    func fallbackToPath() {
+        let defaults = makeDefaults()
+        defaults.set(["/tmp/legacy"], forKey: "HashStack.fileHistory.v1")
+        let fake = FakeBookmarks()
+        let store = FileHistoryStore(defaults: defaults, bookmarks: fake.bookmarks)
+        #expect(store.paths == ["/tmp/legacy"])
+        #expect(store.entries[0].bookmark == nil)
+        #expect(store.open("/tmp/legacy").path == "/tmp/legacy")
+
+        store.add(URL(fileURLWithPath: "/tmp/gone"))
+        fake.unresolvable.insert("/tmp/gone")
+        #expect(store.open("/tmp/gone").path == "/tmp/gone")
+        #expect(store.open("/tmp/never-listed").path == "/tmp/never-listed")
+        #expect(fake.started.isEmpty)
+    }
+
+    @Test("Clear is for good: the paths-only list from the previous build is removed too")
+    func clearBeatsLegacy() {
+        let defaults = makeDefaults()
+        defaults.set(["/tmp/legacy"], forKey: "HashStack.fileHistory.v1")
+        let fake = FakeBookmarks()
+        let store = FileHistoryStore(defaults: defaults, bookmarks: fake.bookmarks)
+        #expect(store.paths == ["/tmp/legacy"])
+        // Carried over, not rewritten, so a downgrade still finds its own list.
+        store.add(URL(fileURLWithPath: "/tmp/new"))
+        #expect(defaults.array(forKey: "HashStack.fileHistory.v1") as? [String] == ["/tmp/legacy"])
+        store.clear()
+        #expect(FileHistoryStore(defaults: defaults, bookmarks: fake.bookmarks).paths.isEmpty)
+        // PRIVACY.md says Clear removes the list: no copy of it stays behind.
+        #expect(defaults.object(forKey: "HashStack.fileHistory.v1") == nil)
+    }
+
+    @Test("A real bookmark follows a renamed file")
+    func realBookmarkFollowsRename() throws {
+        let dir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("HashStackTests-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let before = dir.appendingPathComponent("before.bin")
+        let after = dir.appendingPathComponent("after.bin")
+        try Data("Stack".utf8).write(to: before)
+
+        // Plain bookmarks: the test process isn't sandboxed.
+        let plain = FileBookmarks(
+            make: { try? $0.bookmarkData() },
+            resolve: { data in
+                var isStale = false
+                guard let url = try? URL(resolvingBookmarkData: data,
+                                         bookmarkDataIsStale: &isStale) else { return nil }
+                return (url, isStale)
+            },
+            startAccess: { _ in false },
+            stopAccess: { _ in })
+        let store = FileHistoryStore(defaults: makeDefaults(), bookmarks: plain)
+        store.add(before)
+        try FileManager.default.moveItem(at: before, to: after)
+
+        let opened = store.open(before.path)
+        #expect(opened.lastPathComponent == "after.bin")
+        #expect(try Data(contentsOf: opened) == Data("Stack".utf8))
+        #expect(store.paths.map { ($0 as NSString).lastPathComponent } == ["after.bin"])
     }
 }
